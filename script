@@ -1,0 +1,114 @@
+#! /bin/bash
+
+folder=$HOME"/.bin/pomodoro-bash"
+
+# Define Default pomodoro
+#--------------------------
+pomo_work=1  # 20min in seconds
+pomo_break=1  # 5min in seconds
+pomo_loops=1
+
+POSITIONAL_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -wt|--work-time)
+            pomo_work=$(($2*60))
+            shift
+            shift
+            ;;
+        -bt|--break-time)
+            pomo_break=$(($2*60))
+            shift
+            shift
+            ;;
+        -l|--loops)
+            pomo_loops=$2
+            shift
+            shift
+            ;;
+        -d|--disable)
+            if [[ -f $folder"/status" ]]; then
+                rm $folder"/status"
+            fi
+            exit 1
+            ;;
+        -s|--status)
+            if [[ -f $folder"/status" ]]; then
+                if [[ -f $folder"/timer" ]]; then
+                    start=$(cat $folder"/timer")
+                    timer=$(($(date +%s)-$start))
+
+                    if [[ $timer -gt 59 ]]; then
+                        printf -v min "%02d" $(($timer/60))
+                        printf -v sec "%02d" $(($timer%60))
+                        echo $min":"$sec
+                    else
+                        printf -v sec "%02d" $(($timer%60))
+                        echo "  00:"$sec"  "
+                    fi
+                fi
+            fi
+            exit 1
+            ;;
+
+        -*|--*)
+            echo "Unknow option $1"
+            exit 1
+            ;;
+        *)
+            POSITIONAL_ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+
+if [[ -f $folder"/status" ]]; then
+    if [[ $(cat $folder"/status") != "disable" ]]; then
+        echo "A pomodoro is already running"
+        exit 1
+    fi
+else
+    touch $folder"/status"
+fi
+
+for l in {1..$pomo_loops}; do
+
+    if [[ -f $folder"/status" ]]; then
+        echo $(date +%s) > $folder"/timer"
+
+        if [[ $(tmux -V) == "tmux 3.2a" ]]; then
+            tmux display-popup -h 20% -w 30% "echo 'Time to stay Focus'"
+        elif [[ -z $(echo $(tmux -V) | grep "tmux") ]]; then
+            tmux display-message "echo 'Time to stay Focus'"
+        else
+            notify-send "Time to stay focus"
+        fi
+
+        echo "work" > $folder"/status"
+        $(echo "sleep ${pomo_work}m")
+    fi
+
+    if [[ -f $folder"/status" ]]; then
+        echo $(date +%s) > $folder"/timer"
+
+        if [[ $(tmux -V) == "tmux 3.2a" ]]; then
+            tmux display-popup -h 20% -w 30% "echo 'Time to take a short break'"
+        elif [[ -z $(echo $(tmux -V) | grep "tmux") ]]; then
+            tmux display-message "echo 'Time to take a short break'"
+        else
+            notify-send "Time to take a short break"
+        fi
+
+        echo "break" > $folder"/status"
+        $(echo "sleep ${pomo_break}m")
+    fi
+done
+
+# echo "disable" > $folder"/status"
+if [[ -f $folder"/status" ]]; then
+    rm $folder"/status"
+fi
+if [[ -f $folder"/timer" ]]; then
+    rm $folder"/timer"
+fi

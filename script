@@ -4,8 +4,8 @@ folder=$HOME"/.bin/pomodoro-bash"
 
 # Define Default pomodoro
 #--------------------------
-pomo_work=1  # 20min in seconds
-pomo_break=1  # 5min in seconds
+pomo_work=20  # 20min in seconds
+pomo_break=5  # 5min in seconds
 pomo_loops=1
 
 POSITIONAL_ARGS=()

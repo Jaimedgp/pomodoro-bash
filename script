@@ -13,12 +13,12 @@ POSITIONAL_ARGS=()
 while [[ $# -gt 0 ]]; do
     case $1 in
         -wt|--work-time)
-            pomo_work=$(($2*60))
+            pomo_work=$2
             shift
             shift
             ;;
         -bt|--break-time)
-            pomo_break=$(($2*60))
+            pomo_break=$2
             shift
             shift
             ;;
@@ -81,7 +81,7 @@ for l in {1..$pomo_loops}; do
             tmux display-popup -h 20% -w 30% "echo 'Time to stay Focus'"
         elif [[ -z $(echo $(tmux -V) | grep "tmux") ]]; then
             tmux display-message "echo 'Time to stay Focus'"
-        else
+        elif [[ $(command -v notify-send) ]]; then
             notify-send "Time to stay focus"
         fi
 
@@ -96,7 +96,7 @@ for l in {1..$pomo_loops}; do
             tmux display-popup -h 20% -w 30% "echo 'Time to take a short break'"
         elif [[ -z $(echo $(tmux -V) | grep "tmux") ]]; then
             tmux display-message "echo 'Time to take a short break'"
-        else
+        elif [[ $(command -v notify-send) ]]; then
             notify-send "Time to take a short break"
         fi
 
